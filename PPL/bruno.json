@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "PPL",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
