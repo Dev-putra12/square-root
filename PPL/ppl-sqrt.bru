@@ -6,6 +6,16 @@ meta {
 
 post {
   url: http://localhost:3000/api/sqrt
-  body: none
+  body: json
   auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+  "input":100
+  }
 }

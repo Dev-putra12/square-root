@@ -5,7 +5,16 @@ meta {
 }
 
 get {
-  url: https://api.weatherstack.com/current
+  url: https://api.weatherstack.com/current?access_key=666ac1fa55d1cab977eadae885e8ca8d&query=New York
   body: none
   auth: none
+}
+
+params:query {
+  access_key: 666ac1fa55d1cab977eadae885e8ca8d
+  query: New York
+}
+
+headers {
+  Content-Type: application/json
 }
