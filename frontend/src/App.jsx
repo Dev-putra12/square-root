@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import Home from './Pages/Home'
 import SquareRoot from './Pages/SquareRoot'
-import Translate from './Pages/Translate'
+import Translate from './Pages/translate/Translate'
 import Weather from './Pages/Weather'
 
 function App() {
