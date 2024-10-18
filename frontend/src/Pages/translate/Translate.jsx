@@ -15,7 +15,7 @@ const Translate = () => {
 
   const fetchLanguages = async () => {
     const myHeaders = new Headers();
-    myHeaders.append("apikey", "DWvFxtIeCH6m3L6YxmyzXqQfVvsq7YQK");
+    myHeaders.append("apikey", "uSjToUVQMZJUMicM73YCSVG0NytQdYLR");
 
     const requestOptions = {
       method: 'GET',
@@ -26,7 +26,7 @@ const Translate = () => {
     try {
       const response = await fetch("https://api.apilayer.com/language_translation/languages", requestOptions);
       const result = await response.json();
-      console.log("API Response:", result);
+      // console.log("API Response:", result);
       if (result.languages && Array.isArray(result.languages)) {
         setLanguages(result.languages);
       } else {
@@ -51,7 +51,7 @@ const Translate = () => {
     }
   
     const myHeaders = new Headers();
-    myHeaders.append("apikey", "DWvFxtIeCH6m3L6YxmyzXqQfVvsq7YQK");
+    myHeaders.append("apikey", "uSjToUVQMZJUMicM73YCSVG0NytQdYLR");
     myHeaders.append("Content-Type", "application/json");
   
     const raw = JSON.stringify({

@@ -84,17 +84,27 @@ const SquareRoot = () => {
       <div style={{ padding: '1rem', maxWidth: '800px', margin: '0 auto' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>Square Root Calculator</h1>
         <input
-          type="number"
-          value={number}
-          onChange={(e) => setNumber(e.target.value)}
-          placeholder="Enter a number"
-          style={{ 
-            width: '100%', 
-            padding: '0.5rem', 
-            marginBottom: '0.5rem',
-            border: '1px solid #ccc'
-          }}
-          required
+        type="number"
+        value={number}
+        onChange={(e) => {
+          const value = Math.max(0, Number(e.target.value));
+          setNumber(value);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === '-' || e.key === 'e') {
+            e.preventDefault();
+          }
+        }}
+        min="0"
+        step="1"
+        placeholder="Enter a number"
+        style={{ 
+          width: '100%', 
+          padding: '0.5rem', 
+          marginBottom: '0.5rem',
+          border: '1px solid #ccc'
+        }}
+        required
         />
         <select
           value={method}
