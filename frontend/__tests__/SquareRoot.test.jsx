@@ -1,7 +1,15 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { MemoryRouter } from 'react-router-dom';
 import SquareRoot from '../src/Pages/SquareRoot';
+
+// Mock useNavigate
+const mockNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+}));
 
 // Mock the fetch function
 global.fetch = jest.fn(() =>
@@ -14,15 +22,24 @@ global.fetch = jest.fn(() =>
 describe('SquareRoot Component', () => {
   beforeEach(() => {
     fetch.mockClear();
+    mockNavigate.mockClear();
   });
 
+  const renderWithRouter = (component) => {
+    return render(
+      <MemoryRouter>
+        {component}
+      </MemoryRouter>
+    );
+  };
+
   test('renders without crashing', () => {
-    render(<SquareRoot />);
+    renderWithRouter(<SquareRoot />);
     expect(screen.getByText(/Square Root Calculator/i)).toBeInTheDocument();
   });
 
   test('calculates square root correctly', async () => {
-    render(<SquareRoot />);
+    renderWithRouter(<SquareRoot />);
     const input = screen.getByPlaceholderText(/Enter a number/i);
     const select = screen.getByRole('combobox');
     const button = screen.getByRole('button', { name: /Calculate/i });
@@ -44,7 +61,7 @@ describe('SquareRoot Component', () => {
       })
     );
 
-    render(<SquareRoot />);
+    renderWithRouter(<SquareRoot />);
     const input = screen.getByPlaceholderText(/Enter a number/i);
     const select = screen.getByRole('combobox');
     const button = screen.getByRole('button', { name: /Calculate/i });

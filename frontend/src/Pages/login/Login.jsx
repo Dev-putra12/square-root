@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
+    const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,6 +31,7 @@ const Login = () => {
       // Here you would typically save the token to localStorage or a state management solution
       localStorage.setItem('token', data.token);
       // Redirect or update app state as needed
+      navigate('/')
     } catch (error) {
       setError(error.message);
       console.error('Login error', error);
@@ -101,6 +104,11 @@ const Login = () => {
               </a>
             </div>
           </div>
+          {error && (
+            <div className="text-red-500 text-sm mt-2" role="alert">
+              {error}
+            </div>
+          )}
 
           <div>
             <button
