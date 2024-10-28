@@ -22,27 +22,22 @@ if (!MONGODB_URI) {
 // Connect to MongoDB dengan proper error handling
 const connectDB = async () => {
   try {
-    const client = await MongoClient.connect(MONGODB_URI);
+    const client = await MongoClient.connect(process.env.MONGODB_URI, {
+      ssl: true,
+      tls: true,
+      tlsAllowInvalidCertificates: true,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+    
     console.log('Connected to MongoDB');
     db = client.db('square-root');
-
-    // Handle disconnect
-    client.on('error', (error) => {
-      console.error('MongoDB client error:', error);
-    });
-
-    client.on('close', () => {
-      console.log('MongoDB connection closed');
-      // Attempt to reconnect
-      setTimeout(connectDB, 5000);
-    });
-
   } catch (error) {
     console.error('Error connecting to MongoDB:', error);
-    // Retry connection after delay
     setTimeout(connectDB, 5000);
   }
 };
+
 
 // Initialize DB connection
 connectDB();
