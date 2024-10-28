@@ -27,7 +27,7 @@ const SquareRoot = () => {
 
     try {
       serverStartTime = performance.now();
-      const response = await fetch('http://localhost:3000/api/sqrt', {
+      const response = await fetch('https://square-root-production.up.railway.app/api/sqrt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
