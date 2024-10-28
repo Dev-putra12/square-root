@@ -50,6 +50,9 @@ const checkDB = (req, res, next) => {
   next();
 };
 
+app.get('/', (req, res) => {
+  res.json({ message: 'Welcome to Square Root API' });
+});
 // Apply checkDB middleware to all routes that need DB access
 app.post('/api/auth/register', checkDB, async (req, res) => {
   try {
