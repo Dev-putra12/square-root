@@ -17,7 +17,7 @@ function App() {
             <Home />
           </ProtectedRoute>}/>
         {/* Square Root */}
-        <Route path="/squareroot" element={
+        <Route path="squareroot" element={
           <ProtectedRoute>
             <SquareRoot/>
           </ProtectedRoute>}>
