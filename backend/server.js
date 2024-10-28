@@ -13,127 +13,188 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 let db;
 
-// Connect to MongoDB
-MongoClient.connect(MONGODB_URI)
-  .then(client => {
+// Validasi MONGODB_URI
+if (!MONGODB_URI) {
+  console.error('MONGODB_URI is not defined in environment variables');
+  process.exit(1);
+}
+
+// Connect to MongoDB dengan proper error handling
+const connectDB = async () => {
+  try {
+    const client = await MongoClient.connect(MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
     console.log('Connected to MongoDB');
     db = client.db('square-root');
-  })
-  .catch(error => console.error('Error connecting to MongoDB:', error));
 
-// Registration route
-app.post('/api/auth/register', async (req, res) => {
+    // Handle disconnect
+    client.on('error', (error) => {
+      console.error('MongoDB client error:', error);
+    });
+
+    client.on('close', () => {
+      console.log('MongoDB connection closed');
+      // Attempt to reconnect
+      setTimeout(connectDB, 5000);
+    });
+
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error);
+    // Retry connection after delay
+    setTimeout(connectDB, 5000);
+  }
+};
+
+// Initialize DB connection
+connectDB();
+
+// Middleware to check if DB is connected
+const checkDB = (req, res, next) => {
+  if (!db) {
+    return res.status(500).json({ message: 'Database connection not established' });
+  }
+  next();
+};
+
+// Apply checkDB middleware to all routes that need DB access
+app.post('/api/auth/register', checkDB, async (req, res) => {
   try {
     const { email, password } = req.body;
     
-    // Check if user already exists
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+    
     const existingUser = await db.collection('user').findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
     
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     
-    // Create new user
     const newUser = {
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      createdAt: new Date()
     };
     
-    // Save user to database
-    await db.collection('user').insertOne(newUser);
+    const result = await db.collection('user').insertOne(newUser);
     
-    // Create and send token
-    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign(
+      { userId: result.insertedId }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '1h' }
+    );
+    
     res.status(201).json({ token });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Registration error:', error);
+    res.status(500).json({ message: 'Server error during registration' });
   }
 });
 
-// Login route
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', checkDB, async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check if user exists
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
     const user = await db.collection('user').findOne({ email });
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Create and send token
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign(
+      { userId: user._id }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '1h' }
+    );
+    
     res.json({ token });
-
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error during login' });
   }
 });
 
-app.post('/api/sqrt', async (req, res) => {
-  console.log('Received request:', req.body);
-
-  const { number, method } = req.body;
-  const input = parseFloat(number);
-
-  if (isNaN(input)) {
-    console.log('Invalid input received:', number);
-    return res.status(400).json({ error: 'Invalid input. Please provide a valid number.' });
-  }
-
-  console.log('Calculating square root for:', input, 'using method:', method);
-
-  const startTime = process.hrtime();
-  let result;
-
-  if (method === 'function') {
-    result = Math.sqrt(input);
-  } else if (method === 'api') {
-    // Simulasi API call dengan setTimeout
-    await new Promise(resolve => setTimeout(resolve, 100));
-    result = Math.sqrt(input);
-  } else {
-    return res.status(400).json({ error: 'Invalid method. Use "function" or "api".' });
-  }
-
-  const endTime = process.hrtime(startTime);
-  const executionTime = (endTime[0] * 1e9 + endTime[1]) / 1e6; // Convert to milliseconds
-
-  console.log('Calculation result:', result);
-
-  const calculationData = {
-    input: input,
-    result: result,
-    method: method,
-    timestamp: new Date(),
-    executionTime: executionTime
-  };
-
+app.post('/api/sqrt', checkDB, async (req, res) => {
   try {
+    console.log('Received request:', req.body);
+
+    const { number, method } = req.body;
+    const input = parseFloat(number);
+
+    if (isNaN(input)) {
+      console.log('Invalid input received:', number);
+      return res.status(400).json({ error: 'Invalid input. Please provide a valid number.' });
+    }
+
+    console.log('Calculating square root for:', input, 'using method:', method);
+
+    const startTime = process.hrtime();
+    let result;
+
+    if (method === 'function') {
+      result = Math.sqrt(input);
+    } else if (method === 'api') {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      result = Math.sqrt(input);
+    } else {
+      return res.status(400).json({ error: 'Invalid method. Use "function" or "api".' });
+    }
+
+    const endTime = process.hrtime(startTime);
+    const executionTime = (endTime[0] * 1e9 + endTime[1]) / 1e6;
+
+    const calculationData = {
+      input,
+      result,
+      method,
+      timestamp: new Date(),
+      executionTime
+    };
+
     await db.collection('calculations').insertOne(calculationData);
     console.log('Calculation saved to database');
 
     res.json({
-      result: result,
-      executionTime: executionTime
+      result,
+      executionTime
     });
   } catch (error) {
-    console.error('Error saving calculation:', error);
-    res.status(500).json({ error: 'An error occurred while saving the calculation.' });
+    console.error('Calculation error:', error);
+    res.status(500).json({ error: 'An error occurred during calculation.' });
   }
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok',
+    dbConnected: !!db
+  });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!' });
 });
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+});
+
+process.on('unhandledRejection', (error) => {
+  console.error('Unhandled Rejection:', error);
 });
