@@ -22,10 +22,7 @@ if (!MONGODB_URI) {
 // Connect to MongoDB dengan proper error handling
 const connectDB = async () => {
   try {
-    const client = await MongoClient.connect(MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const client = await MongoClient.connect(MONGODB_URI);
     console.log('Connected to MongoDB');
     db = client.db('square-root');
 
