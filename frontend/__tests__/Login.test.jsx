@@ -25,10 +25,10 @@ describe('Login Component', () => {
     );
 
     fireEvent.change(screen.getByPlaceholderText('Email address'), {
-      target: { value: 'putraagus1204@gmail.com' },
+      target: { value: 'admin@gmail.com' },
     });
     fireEvent.change(screen.getByPlaceholderText('Password'), {
-      target: { value: 'agus123' },
+      target: { value: 'admin' },
     });
 
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
